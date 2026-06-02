@@ -1,0 +1,35 @@
+import express from "express";
+import dotenv from "dotenv";
+import healthRoutes from "./routes/health.routes.js";
+import snsRoutes from "./routes/sns.routes.js";
+import { snsBodyParser, parseSnsBody, } from "./middlewares/snsParser.middleware.js";
+dotenv.config();
+const app = express();
+app.use(express.json());
+const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+async function sendTelegram(text) {
+    const url = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: CHAT_ID, text }),
+    });
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Telegram error: ${res.status} ${err}`);
+    }
+}
+app.use("/sns", snsBodyParser, parseSnsBody, snsRoutes);
+app.use("/", healthRoutes);
+app.get("/test", async (_req, res) => {
+    try {
+        await sendTelegram("Hello from your backend! The pipeline works.");
+        res.send("Message sent — check Telegram.");
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).send("Failed to send. Check server logs.");
+    }
+});
+export default app;
