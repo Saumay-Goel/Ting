@@ -23,7 +23,7 @@ State: ${alarm.state}
 Reason: ${alarm.reason}`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash",
+    model: "gemini-flash-latest",
     contents: prompt,
   });
 
