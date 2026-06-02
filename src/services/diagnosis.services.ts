@@ -15,12 +15,19 @@ Respond with ONLY a JSON object, no markdown, no backticks, in exactly this shap
 
 Be specific and practical. If information is limited, state reasonable assumptions.`;
 
-export async function diagnose(alarm: AlarmInput): Promise<Diagnosis> {
+export async function diagnose(
+  alarm: AlarmInput,
+  logs: string = "",
+): Promise<Diagnosis> {
+  const logSection = logs
+    ? `\n\nRecent logs from around the alarm time:\n${logs}`
+    : "\n\nNo application logs were available.";
+
   const prompt = `${SYSTEM_INSTRUCTION}
 
 Alarm name: ${alarm.alarmName}
 State: ${alarm.state}
-Reason: ${alarm.reason}`;
+Reason: ${alarm.reason}${logSection}`;
 
   const response = await ai.models.generateContent({
     model: "gemini-flash-latest",
@@ -28,7 +35,6 @@ Reason: ${alarm.reason}`;
   });
 
   const raw = response.text ?? "";
-
   const clean = raw.replace(/```json|```/g, "").trim();
 
   try {

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { sendTelegram } from "../services/telegram.services.js";
 import { diagnose } from "../services/diagnosis.services.js";
+import { fetchRecentLogs } from "../services/logs.services.js";
 
 export async function handleSnsNotification(req: Request, res: Response) {
   const msg = req.body;
@@ -20,7 +21,12 @@ export async function handleSnsNotification(req: Request, res: Response) {
         reason: alarm.NewStateReason,
       };
 
-      const diagnosis = await diagnose(alarmInput);
+      const logs = await fetchRecentLogs(
+        "/aws/lambda/ting-test-fn",
+        new Date(alarm.StateChangeTime || Date.now()),
+      );
+
+      const diagnosis = await diagnose(alarmInput, logs);
 
       const text =
         `🚨 ${diagnosis.summary}\n` +
