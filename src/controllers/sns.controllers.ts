@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { sendTelegram } from "../services/telegram.services.js";
 import { diagnose } from "../services/diagnosis.services.js";
 import { fetchRecentLogs } from "../services/logs.services.js";
+const TEST_ROLE_ARN = process.env.TEST_ROLE_ARN!;
+const TEST_EXTERNAL_ID = process.env.TEST_EXTERNAL_ID!;
 
 export async function handleSnsNotification(req: Request, res: Response) {
   const msg = req.body;
@@ -23,6 +25,8 @@ export async function handleSnsNotification(req: Request, res: Response) {
 
       const logs = await fetchRecentLogs(
         "/aws/lambda/ting-test-fn",
+        TEST_ROLE_ARN,
+        TEST_EXTERNAL_ID,
         new Date(alarm.StateChangeTime || Date.now()),
       );
 
