@@ -57,3 +57,12 @@ export async function sendTelegramTo(
   });
   if (!res.ok) console.error("Telegram send failed:", await res.text());
 }
+
+export async function sendTyping(chatId: string): Promise<void> {
+  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendChatAction`;
+  await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, action: "typing" }),
+  }).catch(() => {});
+}

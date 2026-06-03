@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../utils/prisma.js";
+import { sendTyping } from "../services/telegram.service.js";
 import {
   linkTelegramChat,
   sendTelegramTo,
@@ -9,11 +10,13 @@ import { handleIntent } from "../services/botQuery.service.js";
 import { phraseReply } from "../services/botIntent.service.js";
 
 export async function telegramWebhook(req: Request, res: Response) {
-  try {
-    const message = req.body?.message;
-    if (!message?.text) return res.sendStatus(200);
+  const message = req.body?.message;
+  const chatId = message?.chat?.id ? String(message.chat.id) : null;
 
-    const chatId = String(message.chat.id);
+  try {
+    if (!message?.text) return res.sendStatus(200);
+    if (!chatId) return res.sendStatus(200);
+
     const text = message.text.trim();
 
     if (text.startsWith("/start")) {
@@ -38,7 +41,6 @@ export async function telegramWebhook(req: Request, res: Response) {
     const user = await prisma.user.findUnique({
       where: { telegramChatId: chatId },
     });
-    console.log(">>> user found:", !!user);
     if (!user) {
       await sendTelegramTo(
         chatId,
@@ -47,11 +49,11 @@ export async function telegramWebhook(req: Request, res: Response) {
       return res.sendStatus(200);
     }
 
+    await sendTyping(chatId);
     const intent = await classifyIntent(text);
     const data = await handleIntent(intent, user.id);
 
     let reply: string;
-
     if (data.kind === "greeting") {
       reply =
         "Hi! I'm Ting. Ask me about alerts, incidents, system status, or stats.";
@@ -62,14 +64,20 @@ export async function telegramWebhook(req: Request, res: Response) {
       reply =
         "I can show alerts, incident details, system status, and stats. Just ask!";
     } else {
+      await sendTelegramTo(chatId, "🔍 Looking into that…");
       reply = await phraseReply(data);
     }
 
     await sendTelegramTo(chatId, reply);
-
     return res.sendStatus(200);
   } catch (err) {
     console.error("Telegram webhook error:", err);
+    if (chatId) {
+      await sendTelegramTo(
+        chatId,
+        "⚠️ Something went wrong on my end. Please try again in a moment.",
+      ).catch(() => {});
+    }
     return res.sendStatus(200);
   }
 }
