@@ -76,6 +76,8 @@ export async function handleIntent(
 
     case "help":
       return { kind: "help" };
+    case "greeting":
+      return { kind: "greeting" };
 
     case "unrelated":
     default:

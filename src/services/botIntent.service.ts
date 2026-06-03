@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export type Intent =
+  | { type: "greeting" }
   | { type: "recent_alerts"; limit?: number; severity?: string }
   | { type: "alert_detail"; descriptor?: string }
   | { type: "status" }
@@ -15,6 +16,7 @@ const CLASSIFIER_PROMPT = `You are an intent classifier for "Ting", an AWS monit
 Classify the user's message into exactly ONE intent and return ONLY a JSON object, no markdown:
 
 Intents:
+- greeting: a greeting or opening message like "hi", "hello", "hey", "good morning".
 - recent_alerts: wants to see recent alerts/incidents. Optional: "limit" (number), "severity" (low/medium/high/critical).
 - alert_detail: wants details about a specific alert. Optional: "descriptor" (what they referenced, e.g. "the database one").
 - status: wants to know if their system/connection is healthy or set up.

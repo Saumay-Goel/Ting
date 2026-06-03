@@ -48,16 +48,24 @@ export async function telegramWebhook(req: Request, res: Response) {
     }
 
     const intent = await classifyIntent(text);
-    console.log(">>> intent:", JSON.stringify(intent));
-
     const data = await handleIntent(intent, user.id);
-    console.log(">>> data kind:", data?.kind);
 
-    const reply = await phraseReply(data);
-    console.log(">>> reply length:", reply?.length);
+    let reply: string;
+
+    if (data.kind === "greeting") {
+      reply =
+        "Hi! I'm Ting. Ask me about alerts, incidents, system status, or stats.";
+    } else if (data.kind === "unrelated") {
+      reply =
+        "I can help with AWS alerts, incidents, status, and stats. What would you like to check?";
+    } else if (data.kind === "help") {
+      reply =
+        "I can show alerts, incident details, system status, and stats. Just ask!";
+    } else {
+      reply = await phraseReply(data);
+    }
 
     await sendTelegramTo(chatId, reply);
-    console.log(">>> sent");
 
     return res.sendStatus(200);
   } catch (err) {
