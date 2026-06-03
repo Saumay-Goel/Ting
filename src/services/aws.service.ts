@@ -35,8 +35,18 @@ export async function saveRoleArn(
   });
   if (!connection) throw new Error("Connection not found");
 
+  const match = roleArn.match(/arn:aws:iam::(\d+):role\//);
+  const awsAccountId = match ? match[1] : null;
+  if (!awsAccountId) throw new Error("Could not parse account ID from ARN");
+
   return prisma.awsConnection.update({
     where: { id: connectionId },
-    data: { roleArn },
+    data: { roleArn, awsAccountId },
+  });
+}
+export async function getConnectionByAccountId(awsAccountId: string) {
+  return prisma.awsConnection.findUnique({
+    where: { awsAccountId },
+    include: { user: true },
   });
 }

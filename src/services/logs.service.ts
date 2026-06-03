@@ -6,10 +6,8 @@ import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
 
 const region = process.env.AWS_REGION;
 
-// STS client uses your backend's base creds (ting-logreader) from env
 const sts = new STSClient({ region });
 
-// Assume the given role and return a CloudWatch Logs client scoped to it.
 async function getLogsClientForRole(
   roleArn: string,
   externalId: string,
@@ -26,7 +24,6 @@ async function getLogsClientForRole(
   const creds = assumed.Credentials;
   if (!creds) throw new Error("AssumeRole returned no credentials");
 
-  // New client using the TEMPORARY credentials from the assumed role
   return new CloudWatchLogsClient({
     region,
     credentials: {
@@ -70,4 +67,19 @@ export async function fetchRecentLogs(
     console.error("Log fetch failed:", err);
     return "";
   }
+}
+
+export function inferLogGroup(alarm: any): string | null {
+  const trigger = alarm.Trigger;
+  if (!trigger) return null;
+
+  const namespace = trigger.Namespace;
+  const dims: { name: string; value: string }[] = trigger.Dimensions || [];
+
+  if (namespace === "AWS/Lambda") {
+    const fn = dims.find((d) => d.name === "FunctionName")?.value;
+    if (fn) return `/aws/lambda/${fn}`;
+  }
+
+  return null;
 }

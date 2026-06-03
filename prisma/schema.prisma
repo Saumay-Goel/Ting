@@ -48,7 +48,9 @@ model AwsConnection {
   roleArn     String   
   externalId  String   
   region      String   @default("us-east-1")
-  label       String?  
+  label       String?
+
+  awsAccountId  String?   @unique
 
   createdAt   DateTime @default(now())
 }
@@ -58,12 +60,34 @@ model Alert {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+
   alarmName   String
   state       String
   reason      String?
+  awsAccountId String?
+  region      String?
 
-  diagnosis   Json?
-  logsSnippet String?  // the logs that were fed to the diagnosis
+  logsSnippet String?
+
+  summary     String?
+  severity    String?
+  cause       String?
+  steps       Json?
+
+  agentAction      Json?     // what the agent did/planned
+  agentStatus      AgentStatus @default(NONE)
+  agentResult      String?   // outcome description
+
+  fixWorked   Boolean?
 
   createdAt   DateTime @default(now())
+  @@index([userId, createdAt])
+}
+
+enum AgentStatus {
+  NONE        // free tier, or no action taken
+  SUGGESTED   // agent proposed a fix
+  AWAITING    // waiting for user approval
+  EXECUTED    // agent ran the fix
+  FAILED      // agent attempted but failed
 }
