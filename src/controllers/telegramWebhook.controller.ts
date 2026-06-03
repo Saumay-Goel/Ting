@@ -38,18 +38,26 @@ export async function telegramWebhook(req: Request, res: Response) {
     const user = await prisma.user.findUnique({
       where: { telegramChatId: chatId },
     });
+    console.log(">>> user found:", !!user);
     if (!user) {
       await sendTelegramTo(
         chatId,
-        "Please link your account first from the Ting dashboard, then I can help.",
+        "Please link your account first from the Ting dashboard.",
       );
       return res.sendStatus(200);
     }
 
     const intent = await classifyIntent(text);
+    console.log(">>> intent:", JSON.stringify(intent));
+
     const data = await handleIntent(intent, user.id);
+    console.log(">>> data kind:", data?.kind);
+
     const reply = await phraseReply(data);
+    console.log(">>> reply length:", reply?.length);
+
     await sendTelegramTo(chatId, reply);
+    console.log(">>> sent");
 
     return res.sendStatus(200);
   } catch (err) {
