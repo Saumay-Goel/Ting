@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Ting - read-only CloudWatch Logs access role"
+
+Parameters:
+  TingAccountId:
+    Type: String
+    Description: Ting's AWS account ID (the trusted account)
+  ExternalId:
+    Type: String
+    Description: Unique external ID for this connection
+
+Resources:
+  TingLogAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "ting-log-access-${ExternalId}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${TingAccountId}:root"
+            Action: "sts:AssumeRole"
+            Condition:
+              StringEquals:
+                "sts:ExternalId": !Ref ExternalId
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/CloudWatchLogsReadOnlyAccess"
+
+Outputs:
+  RoleArn:
+    Description: "Copy this ARN into your Ting dashboard"
+    Value: !GetAtt TingLogAccessRole.Arn
