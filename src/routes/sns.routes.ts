@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { handleSnsNotification } from "../controllers/sns.controllers.js";
+import { handleSnsNotification } from "../controllers/sns.controller.js";
 
 const router = Router();
 

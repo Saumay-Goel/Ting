@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String?
+  name              String?
+
+  emailVerified     Boolean   @default(false)
+  verifyToken       String?   @unique
+  verifyTokenExpiry DateTime?
+
+  resetToken        String?   @unique
+  resetTokenExpiry  DateTime?
+
+  googleId          String?   @unique
+  githubId          String?   @unique
+
+  tier              Tier      @default(FREE)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  awsConnections    AwsConnection[]
+  alerts            Alert[]
+
+  telegramChatId    String?   @unique
+  telegramLinkCode  String?   @unique
+}
+
+enum Tier {
+  FREE
+  PAID
+}
+
+model AwsConnection {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  roleArn     String   
+  externalId  String   
+  region      String   @default("us-east-1")
+  label       String?  
+
+  createdAt   DateTime @default(now())
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  alarmName   String
+  state       String
+  reason      String?
+
+  diagnosis   Json?
+  logsSnippet String?  // the logs that were fed to the diagnosis
+
+  createdAt   DateTime @default(now())
+}

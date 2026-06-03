@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { sendTelegram } from "../services/telegram.services.js";
-import { diagnose } from "../services/diagnosis.services.js";
-import { fetchRecentLogs } from "../services/logs.services.js";
+import { sendTelegram } from "../services/telegram.service.js";
+import { diagnose } from "../services/diagnosis.service.js";
+import { fetchRecentLogs } from "../services/logs.service.js";
 const TEST_ROLE_ARN = process.env.TEST_ROLE_ARN!;
 const TEST_EXTERNAL_ID = process.env.TEST_EXTERNAL_ID!;
 
