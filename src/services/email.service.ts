@@ -6,7 +6,7 @@ function getResend() {
 
 export async function sendVerificationEmail(to: string, token: string) {
   const resend = getResend();
-  const link = `${process.env.APP_URL}/auth/verify?token=${token}`;
+  const link = `${process.env.APP_URL}/verify?token=${token}`;
   const { data, error } = await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to,
@@ -36,7 +36,7 @@ export async function sendWelcomeEmail(to: string, name?: string) {
 
 export async function sendPasswordResetEmail(to: string, token: string) {
   const resend = getResend();
-  const link = `${process.env.APP_URL}/auth/reset-password?token=${token}`;
+  const link = `${process.env.APP_URL}/reset-password?token=${token}`;
   const { error } = await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to,

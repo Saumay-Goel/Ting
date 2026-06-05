@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { register, login } from "../controllers/auth.controller.js";
 import { verifyEmail } from "../controllers/auth.controller.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
+import { getMe } from "../controllers/user.controller.js";
+
 import {
   forgotPassword,
   resetPasswordHandler,
@@ -22,5 +25,6 @@ router.get("/google", googleLogin);
 router.get("/google/callback", googleCallback);
 router.get("/github", githubLogin);
 router.get("/github/callback", githubCallback);
+router.get("/auth/me", requireAuth, getMe);
 
 export default router;
