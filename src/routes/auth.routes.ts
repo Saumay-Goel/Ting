@@ -25,6 +25,6 @@ router.get("/google", googleLogin);
 router.get("/google/callback", googleCallback);
 router.get("/github", githubLogin);
 router.get("/github/callback", githubCallback);
-router.get("/auth/me", requireAuth, getMe);
+router.get("/me", requireAuth, getMe);
 
 export default router;

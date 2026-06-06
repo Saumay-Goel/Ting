@@ -11,6 +11,7 @@ export async function getMe(req: Request, res: Response) {
       tier: true,
       emailVerified: true,
       telegramChatId: true,
+      awsConnections: { select: { id: true, roleArn: true }, take: 1 },
     },
   });
   return res.json({ user });
