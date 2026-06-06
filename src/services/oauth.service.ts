@@ -1,6 +1,5 @@
 const BASE = process.env.OAUTH_REDIRECT_BASE!;
 
-// ---------- GOOGLE ----------
 export function getGoogleAuthUrl(): string {
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
@@ -40,7 +39,6 @@ export async function getGoogleProfile(code: string) {
   };
 }
 
-// ---------- GITHUB ----------
 export function getGithubAuthUrl(): string {
   const params = new URLSearchParams({
     client_id: process.env.GITHUB_CLIENT_ID!,

@@ -60,16 +60,17 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function verifyEmail(req: Request, res: Response) {
+  const frontend = process.env.FRONTEND_URL!;
   try {
     const token = req.query.token as string;
-    if (!token) return res.status(400).send("Missing token");
+    if (!token) return res.redirect(`${frontend}/verify?status=error`);
 
     const user = await verifyEmailToken(token);
     await sendWelcomeEmail(user.email, user.name ?? undefined);
 
-    return res.send("Email verified! You can now log in.");
-  } catch (err: any) {
-    return res.status(400).send(err.message);
+    return res.redirect(`${frontend}/verify?status=success`);
+  } catch {
+    return res.redirect(`${frontend}/verify?status=error`);
   }
 }
 
@@ -113,39 +114,35 @@ export function githubLogin(_req: Request, res: Response) {
 }
 
 export async function googleCallback(req: Request, res: Response) {
+  const frontend = process.env.FRONTEND_URL!; // https://ting-fe.vercel.app
   try {
     const code = req.query.code as string;
-    if (!code) return res.status(400).send("Missing code");
+    if (!code) return res.redirect(`${frontend}/login?error=oauth`);
     const profile = await getGoogleProfile(code);
     const user = await findOrCreateOAuthUser({
       provider: "google",
       ...profile,
     });
     const token = signToken(user.id);
-    return res.json({
-      token,
-      user: { id: user.id, email: user.email, name: user.name },
-    });
+    return res.redirect(`${frontend}/oauth/callback?token=${token}`);
   } catch (err: any) {
-    return res.status(400).send(`Google auth failed: ${err.message}`);
+    return res.redirect(`${frontend}/login?error=oauth`);
   }
 }
 
 export async function githubCallback(req: Request, res: Response) {
+  const frontend = process.env.FRONTEND_URL!;
   try {
     const code = req.query.code as string;
-    if (!code) return res.status(400).send("Missing code");
+    if (!code) return res.redirect(`${frontend}/login?error=oauth`);
     const profile = await getGithubProfile(code);
     const user = await findOrCreateOAuthUser({
       provider: "github",
       ...profile,
     });
     const token = signToken(user.id);
-    return res.json({
-      token,
-      user: { id: user.id, email: user.email, name: user.name },
-    });
+    return res.redirect(`${frontend}/oauth/callback?token=${token}`);
   } catch (err: any) {
-    return res.status(400).send(`GitHub auth failed: ${err.message}`);
+    return res.redirect(`${frontend}/login?error=oauth`);
   }
 }
