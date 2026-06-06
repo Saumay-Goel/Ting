@@ -2,15 +2,17 @@ import { prisma } from "../utils/prisma.js";
 import { generateToken } from "../utils/tokens.js";
 
 export async function createAwsConnectionLink(userId: string) {
-  const externalId = `ting-${generateToken().slice(0, 12)}`;
-
-  const connection = await prisma.awsConnection.create({
-    data: {
-      userId,
-      externalId,
-      roleArn: "",
-    },
+  let connection = await prisma.awsConnection.findFirst({
+    where: { userId, roleArn: "" },
   });
+  if (!connection) {
+    const externalId = `ting-${generateToken().slice(0, 12)}`;
+    connection = await prisma.awsConnection.create({
+      data: { userId, externalId, roleArn: "" },
+    });
+  }
+
+  const externalId = connection.externalId;
 
   const templateUrl = process.env.TEMPLATE_URL!;
   const tingAccountId = process.env.TING_ACCOUNT_ID!;
@@ -38,6 +40,19 @@ export async function saveRoleArn(
   const match = roleArn.match(/arn:aws:iam::(\d+):role\//);
   const awsAccountId = match ? match[1] : null;
   if (!awsAccountId) throw new Error("Could not parse account ID from ARN");
+
+  const existing = await prisma.awsConnection.findUnique({
+    where: { awsAccountId },
+  });
+
+  if (existing && existing.id !== connectionId) {
+    const updated = await prisma.awsConnection.update({
+      where: { awsAccountId },
+      data: { roleArn, userId, externalId: connection.externalId },
+    });
+    await prisma.awsConnection.delete({ where: { id: connectionId } });
+    return updated;
+  }
 
   return prisma.awsConnection.update({
     where: { id: connectionId },
